@@ -1,0 +1,14 @@
+# Development and test artifacts
+.dev-tools/
+node_modules/
+package-lock.json
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.log
