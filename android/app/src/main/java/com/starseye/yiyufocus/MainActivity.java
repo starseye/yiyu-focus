@@ -9,11 +9,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -21,15 +24,14 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import androidx.webkit.WebViewAssetLoader;
-
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
+    private static final String TAG = "YiyuFocus";
     private static final int FILE_CHOOSER_REQUEST = 7412;
     private static final String APP_URL =
-            "https://appassets.androidplatform.net/assets/www/index.html?native=1";
+            "file:///android_asset/www/index.html";
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
@@ -48,12 +50,15 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         webView.setBackgroundColor(Color.rgb(241, 236, 227));
+        WebView.setWebContentsDebuggingEnabled(true);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(false);
+        settings.setAllowFileAccess(true);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setAllowContentAccess(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
@@ -65,18 +70,31 @@ public class MainActivity extends Activity {
         settings.setTextZoom(100);
         settings.setUserAgentString(settings.getUserAgentString() + " YiyuFocusAndroid/1.0");
 
-        final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
-                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
-                .build();
-
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                return assetLoader.shouldInterceptRequest(request.getUrl());
+            public void onPageFinished(WebView view, String url) {
+                Log.i(TAG, "onPageFinished: " + url);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                Log.e(TAG, "onReceivedError: " + request.getUrl() + " :: " + error.getDescription());
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse response) {
+                Log.e(TAG, "onReceivedHttpError: " + request.getUrl() + " :: " + response.getStatusCode());
             }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage message) {
+                Log.e(TAG, "console: " + message.message()
+                        + " @ " + message.sourceId() + ":" + message.lineNumber());
+                return true;
+            }
+
             @Override
             public boolean onShowFileChooser(
                     WebView view,

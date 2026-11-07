@@ -14,7 +14,8 @@
   const PHASES = ['focus', 'short', 'long'];
   const MAX_ESTIMATE = 6;
   const MAX_IMPORT_SIZE = 5 * 1024 * 1024;
-  const isNativeShell = new URLSearchParams(window.location.search).get('native') === '1';
+  const isNativeShell = new URLSearchParams(window.location.search).get('native') === '1'
+    || /YiyuFocusAndroid/.test(navigator.userAgent);
 
   const EMPTY_ART = `
     <svg class="empty-art" viewBox="0 0 160 120" fill="none" aria-hidden="true">
