@@ -1,0 +1,54 @@
+name: Android APK smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download released APK
+        run: |
+          curl -L --fail --retry 3 \
+            -o yiyu-focus-android.apk \
+            "https://github.com/starseye/yiyu-focus/releases/download/android-v1.0.0/yiyu-focus-android.apk"
+          ls -lh yiyu-focus-android.apk
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install and launch on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+            -camera-back none -camera-front none
+          script: |
+            adb install -r yiyu-focus-android.apk
+            adb shell am start -W -n com.starseye.yiyufocus/.MainActivity
+            sleep 8
+            adb shell pidof com.starseye.yiyufocus
+            adb shell dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp' || true
+            adb exec-out screencap -p > yiyu-android-launch.png
+            adb logcat -d -s AndroidRuntime:E | tail -n 80 || true
+
+      - name: Upload launch screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yiyu-android-launch
+          path: yiyu-android-launch.png
+          if-no-files-found: warn
