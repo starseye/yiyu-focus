@@ -44,14 +44,7 @@ jobs:
             adb logcat -c
             adb install -r yiyu-focus-android.apk
             adb shell am start -W -n com.starseye.yiyufocus/.MainActivity
-            for i in $(seq 1 25); do
-              if adb logcat -d -s YiyuFocus:I | grep -q 'onPageFinished'; then
-                echo "PAGE_FINISHED_AFTER=${i}s"
-                break
-              fi
-              sleep 1
-            done
-            sleep 8
+            sleep 20
             adb shell pidof com.starseye.yiyufocus
             adb shell dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity' || true
             echo "--- YiyuFocus logs ---"
