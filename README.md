@@ -19,6 +19,7 @@
 - **结束提醒**：提示音和可选的桌面通知。
 - **数据管理**：运行状态与学习记录分开管理，记录清理支持每天、每周、每月或仅一次的自定义时间，并且可以撤销。
 - **可以安装**：支持 PWA，安装到手机主屏幕或电脑桌面；首次加载后离线也能打开。
+- **Android 独立 APK**：把页面和资源全部打进安装包，不经过浏览器地址栏，离线可用。
 - **纯本地**：所有数据保存在浏览器 `localStorage`，不会上传到任何服务器。
 
 ## 在线使用
@@ -36,6 +37,20 @@
 安装后从桌面图标打开即可，首次联网加载完成后，即使断网也能使用。它仍然是本地应用，数据不会同步到其他设备。
 
 在线版和本地 `file://` 版使用不同的浏览器存储，数据互不相通；选择一种方式长期使用，并定期导出备份即可。
+
+## Android 独立 APK
+
+如果不想依赖浏览器，可以直接下载安装包：
+
+**[下载一隅专注 Android APK](https://github.com/starseye/yiyu-focus/releases/download/android-v1.0.0/yiyu-focus-android.apk)**
+
+- 适用 Android 10 及以上。
+- 下载 APK 后，在手机上允许“安装未知应用”，再点击安装；不需要通过应用商店。
+- 页面、样式、图标全部内置在 APK 里，打开时没有浏览器地址栏，断网也能用。
+- 首次打开是干净数据。想保留现在的任务和记录：先在网页版「数据与备份」导出 JSON，再在 App 里「导入备份」。
+- 当前是可直接侧载的 debug 签名构建；未上架 Google Play，后续更新可能需要重新安装。
+
+iPhone / iPad 由于苹果签名限制，请继续使用 Safari「添加到主屏幕」的 PWA 方式。
 
 ## 本地使用
 
@@ -74,6 +89,8 @@ msedge.exe --app="file:///你的路径/index.html" --start-maximized
 | `app.js` | 计时、任务、日历、统计和本地存储逻辑 |
 | `manifest.webmanifest` | PWA 安装信息与图标配置 |
 | `sw.js` | 离线缓存 Service Worker |
+| `android/` | Android 独立 APK 工程（WebView + 本地资源） |
+| `.github/workflows/android.yml` | GitHub Actions 构建并发布 APK |
 | `icon-192.png` / `icon-512.png` | Android / PWA 图标 |
 | `icon-maskable-512.png` | Android 自适应图标 |
 | `apple-touch-icon.png` | iPhone / iPad 桌面图标 |
@@ -88,11 +105,12 @@ msedge.exe --app="file:///你的路径/index.html" --start-maximized
 - 无框架、无构建步骤、无第三方运行时依赖。
 - 使用 `localStorage` 做本地持久化，使用 Web Worker 辅助后台计时。
 - 使用 Web App Manifest + Service Worker 支持安装和离线缓存；首次加载后缓存应用外壳。
+- Android APK 使用 Android WebView 加载内置资源；所有页面文件都在安装包内，不依赖浏览器 App。
 - 设计风格为纸张质感、森林绿与番茄红，支持桌面与移动宽度的响应式布局。
 
 ## English
 
-Yiyu Focus is a local-first Pomodoro timer and task calendar with a calm, paper-like interface. It is a single-page app built with vanilla HTML, CSS and JavaScript — no build step, no dependencies and no tracking. The interface is in Chinese. Data stays in your browser via `localStorage`. It is installable as a PWA and works offline after the first load.
+Yiyu Focus is a local-first Pomodoro timer and task calendar with a calm, paper-like interface. It is a single-page app built with vanilla HTML, CSS and JavaScript — no build step, no dependencies and no tracking. The interface is in Chinese. Data stays in your browser via `localStorage`. It is installable as a PWA and works offline after the first load. An Android APK with bundled assets is available from the latest release.
 
 Live demo: <https://starseye.github.io/yiyu-focus/>
 

@@ -1971,6 +1971,12 @@ kbd {
   line-height: 1.55;
 }
 
+.install-apk-link {
+  color: var(--tomato-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .data-btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;

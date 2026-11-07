@@ -56,23 +56,27 @@ jobs:
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           test -f "$APK"
           AAPT="$(find "$ANDROID_SDK_ROOT" -path '*/build-tools/35.0.0/aapt' -print -quit)"
+          APKSIGNER="$(find "$ANDROID_SDK_ROOT" -path '*/build-tools/35.0.0/apksigner' -print -quit)"
           "$AAPT" dump badging "$APK" | head -n 25
+          "$APKSIGNER" verify --verbose "$APK" | head -n 12
           sha256sum "$APK" | tee "$APK.sha256"
-          ls -lh "$APK"
+          cp "$APK" yiyu-focus-android.apk
+          sha256sum yiyu-focus-android.apk > yiyu-focus-android.apk.sha256
+          ls -lh "$APK" yiyu-focus-android.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: yiyu-focus-android
           path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            android/app/build/outputs/apk/debug/app-debug.apk.sha256
+            yiyu-focus-android.apk
+            yiyu-focus-android.apk.sha256
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          APK="yiyu-focus-android.apk"
           TAG="android-v1.0.0"
           NOTES=$(cat <<'EOF'
           Android 独立安装包（APK），内置全部页面资源，打开不经过浏览器地址栏，断网也能用。
@@ -86,11 +90,10 @@ jobs:
           EOF
           )
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK#yiyu-focus-android.apk" "$APK.sha256#yiyu-focus-android.apk.sha256" --clobber
+            gh release upload "$TAG" "$APK" "$APK.sha256" --clobber
           else
             gh release create "$TAG" \
-              "$APK#yiyu-focus-android.apk" \
-              "$APK.sha256#yiyu-focus-android.apk.sha256" \
+              "$APK" "$APK.sha256" \
               --title "一隅专注 Android v1.0.0" \
               --notes "$NOTES"
           fi
