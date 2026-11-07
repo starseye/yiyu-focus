@@ -37,12 +37,22 @@ jobs:
             -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
             -camera-back none -camera-front none
           script: |
+            echo "--- APK assets ---"
+            unzip -l yiyu-focus-android.apk | grep 'assets/www' | head -n 20
+            echo "--- index head ---"
+            unzip -p yiyu-focus-android.apk assets/www/index.html | head -n 12
+            adb logcat -c
             adb install -r yiyu-focus-android.apk
             adb shell am start -W -n com.starseye.yiyufocus/.MainActivity
             sleep 8
             adb shell pidof com.starseye.yiyufocus
-            adb shell dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp' || true
+            adb shell dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity' || true
+            echo "--- YiyuFocus logs ---"
+            adb logcat -d -s YiyuFocus:* | tail -n 100 || true
+            echo "--- WebView logs ---"
+            adb logcat -d | grep -E 'chromium|WebView|YiyuFocus|AndroidRuntime' | tail -n 150 || true
             adb exec-out screencap -p > yiyu-android-launch.png
+            echo "--- crashes ---"
             adb logcat -d -s AndroidRuntime:E | tail -n 80 || true
 
       - name: Upload launch screenshot
