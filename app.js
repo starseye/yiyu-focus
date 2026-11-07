@@ -497,6 +497,8 @@
   let bootWarning = loaded.warning;
   let booted = false;
   let restoredExpiredPhase = false;
+  let deferredInstallPrompt = null;
+  let pwaSetupDone = false;
 
   let draggingCalendar = false;
   let dragAnchor = null;
@@ -542,6 +544,10 @@
     heroSub: $('heroSub'),
     todayPomo: $('todayPomo'),
     heroSettingsBtn: $('heroSettingsBtn'),
+    installAppBtn: $('installAppBtn'),
+    installSettingsBtn: $('installSettingsBtn'),
+    installSettingsLabel: $('installSettingsLabel'),
+    installHint: $('installHint'),
     sidebarSettingsBtn: $('sidebarSettingsBtn'),
     timerPanel: $('timerPanel'),
     phaseBadgeText: $('phaseBadgeText'),
@@ -2062,6 +2068,7 @@
       && Notification.permission === 'granted';
     updateNotificationHint();
     populateCleanupForm();
+    updateInstallUI();
     dom.dataStatus.hidden = true;
     dom.dataStatus.classList.remove('is-error');
     dom.dataStatus.textContent = '';
@@ -2424,6 +2431,8 @@
     });
 
     dom.heroSettingsBtn.addEventListener('click', () => openSettings('timer'));
+    dom.installAppBtn.addEventListener('click', installApp);
+    dom.installSettingsBtn.addEventListener('click', installApp);
     dom.sidebarSettingsBtn.addEventListener('click', () => openSettings('data'));
     dom.settingsTabTimer.addEventListener('click', () => switchSettingsTab('timer'));
     dom.settingsTabData.addEventListener('click', () => switchSettingsTab('data'));
@@ -2631,6 +2640,144 @@
      Boot
      ------------------------------------------------------------------------ */
 
+  function isStandaloneMode() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+  }
+
+  function isIosBrowser() {
+    return /iPad|iPhone|iPod/.test(window.navigator.userAgent)
+      || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+  }
+
+  function isMobileBrowser() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent);
+  }
+
+  function canUsePwa() {
+    return location.protocol === 'https:'
+      || location.hostname === 'localhost'
+      || location.hostname === '127.0.0.1';
+  }
+
+  function updateInstallUI() {
+    if (!dom.installAppBtn || !dom.installSettingsBtn || !dom.installHint) return;
+
+    const installed = isStandaloneMode();
+    const secure = canUsePwa();
+    const ios = isIosBrowser();
+    const mobile = isMobileBrowser();
+    const promptReady = Boolean(deferredInstallPrompt);
+
+    dom.installAppBtn.hidden = installed || !secure || !(promptReady || ios || mobile);
+
+    if (!secure) {
+      dom.installSettingsLabel.textContent = '在线版可安装';
+      dom.installSettingsBtn.disabled = true;
+      dom.installHint.textContent = '在线版打开后即可安装到手机；本地文件版可以直接使用桌面快捷方式。';
+      return;
+    }
+
+    dom.installSettingsBtn.disabled = installed;
+    if (installed) {
+      dom.installSettingsLabel.textContent = '已安装到桌面';
+      dom.installHint.textContent = '当前正以独立应用方式打开；数据仍然只保存在本机。';
+      return;
+    }
+
+    if (promptReady) {
+      dom.installSettingsLabel.textContent = '安装应用';
+      dom.installHint.textContent = '点击安装后，可以从桌面直接打开；首次加载完成后支持离线使用。';
+    } else if (ios) {
+      dom.installSettingsLabel.textContent = '查看安装步骤';
+      dom.installHint.textContent = '在 Safari 中点底部「分享」，再选「添加到主屏幕」。';
+    } else if (mobile) {
+      dom.installSettingsLabel.textContent = '查看安装方法';
+      dom.installHint.textContent = '在浏览器菜单中选「安装应用」或「添加到主屏幕」。';
+    } else {
+      dom.installSettingsLabel.textContent = '查看安装方法';
+      dom.installHint.textContent = '在 Chrome / Edge 的地址栏或菜单中选择「安装应用」。';
+    }
+  }
+
+  async function installApp() {
+    if (isStandaloneMode()) {
+      updateInstallUI();
+      return;
+    }
+
+    if (deferredInstallPrompt) {
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        showToast(
+          choice.outcome === 'accepted'
+            ? '安装已开始，完成后可以从桌面打开。'
+            : '已取消安装，需要时可以从浏览器菜单再次安装。',
+          { icon: 'download', duration: 5200 }
+        );
+      } catch (error) {
+        showToast('安装窗口没有打开，请使用浏览器菜单中的「安装应用」。', {
+          icon: 'download',
+          duration: 6200
+        });
+      }
+      updateInstallUI();
+      return;
+    }
+
+    if (isIosBrowser()) {
+      showToast('Safari：点底部「分享」→「添加到主屏幕」。', { icon: 'download', duration: 7200 });
+      return;
+    }
+    if (isMobileBrowser()) {
+      showToast('打开浏览器菜单，选择「安装应用」或「添加到主屏幕」。', {
+        icon: 'download',
+        duration: 6800
+      });
+      return;
+    }
+    if (canUsePwa()) {
+      showToast('在 Chrome / Edge 地址栏或菜单中选择「安装应用」。', {
+        icon: 'download',
+        duration: 6800
+      });
+      return;
+    }
+    showToast('请打开在线版后再安装到手机。', { icon: 'download', duration: 5200 });
+  }
+
+  function registerServiceWorker() {
+    if (!('serviceWorker' in navigator) || !canUsePwa()) return;
+    const register = () => {
+      navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).catch(() => {});
+    };
+    if (document.readyState === 'complete') register();
+    else window.addEventListener('load', register, { once: true });
+  }
+
+  function setupPwa() {
+    if (pwaSetupDone) return;
+    pwaSetupDone = true;
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      updateInstallUI();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      updateInstallUI();
+      showToast('已安装到桌面，之后可以从图标直接打开。', { icon: 'check', duration: 5200 });
+    });
+
+    registerServiceWorker();
+    updateInstallUI();
+  }
+
   function init() {
     currentToday = dateKey();
     ui = createUiState();
@@ -2654,6 +2801,7 @@
     setComposerEstimate(ui.composerEstimate);
     booted = true;
     requestPersistentStorage();
+    setupPwa();
 
     if (bootWarning) {
       window.setTimeout(() => {

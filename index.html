@@ -5,8 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#1c2a23">
   <meta name="description" content="一隅 · 一款安静、离线可用的番茄钟与每日任务清单">
+  <meta name="application-name" content="一隅专注">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="一隅专注">
   <title>一隅 · 番茄专注</title>
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -219,6 +227,9 @@
             </button>
             <button class="tool-btn" id="zenBtn" type="button" aria-label="进入专注模式" aria-pressed="false" title="专注模式">
               <svg class="icon" aria-hidden="true"><use href="#i-maximize"></use></svg>
+            </button>
+            <button class="tool-btn" id="installAppBtn" type="button" aria-label="安装到桌面" title="安装到桌面" hidden>
+              <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
             </button>
           </div>
         </div>
@@ -461,6 +472,18 @@
             </label>
           </div>
           <p class="cleanup-next" id="cleanupNext" aria-live="polite">学习记录自动清理未开启，任务与记录会一直保留。</p>
+        </section>
+
+        <section class="settings-block">
+          <div class="settings-block-title">安装到手机</div>
+          <p class="data-note">安装后可以像 App 一样从桌面直接打开；首次加载后支持离线使用，数据仍然只保存在本机。</p>
+          <div class="data-actions">
+            <button class="data-btn" id="installSettingsBtn" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
+              <span id="installSettingsLabel">安装应用</span>
+            </button>
+          </div>
+          <p class="data-note install-hint" id="installHint" aria-live="polite"></p>
         </section>
 
         <section class="settings-block">

@@ -2,9 +2,9 @@
 
 > 把 25 分钟交给一件事。
 
-一个离线、零依赖的番茄专注与任务日历。没有账号、没有云同步、没有网络请求；打开即用，数据只留在你的浏览器里。
+一个离线、零依赖的番茄专注与任务日历。没有账号、没有云同步、没有广告；打开即用，数据只留在你的浏览器里。可以安装到手机或电脑桌面，首次加载后支持离线打开。
 
-**在线使用：** <https://starseye.github.io/yiyu-focus/>
+**在线使用 / 安装：** <https://starseye.github.io/yiyu-focus/>
 
 ![一隅专注界面预览](预览.png)
 
@@ -18,6 +18,7 @@
 - **专注模式**：隐藏日历和任务栏，只留下计时器。
 - **结束提醒**：提示音和可选的桌面通知。
 - **数据管理**：运行状态与学习记录分开管理，记录清理支持每天、每周、每月或仅一次的自定义时间，并且可以撤销。
+- **可以安装**：支持 PWA，安装到手机主屏幕或电脑桌面；首次加载后离线也能打开。
 - **纯本地**：所有数据保存在浏览器 `localStorage`，不会上传到任何服务器。
 
 ## 在线使用
@@ -26,7 +27,15 @@
 
 <https://starseye.github.io/yiyu-focus/>
 
-也可以把它当作一个网页应用使用。在线版和本地 `file://` 版使用不同的浏览器存储，数据互不相通；选择一种方式长期使用，并定期导出备份即可。
+### 安装到手机
+
+- **Android / Chrome 或 Edge**：打开页面后，点计时器右上角的下载图标，或从浏览器菜单选择 **安装应用** / **添加到主屏幕**。
+- **iPhone / iPad / Safari**：点底部 **分享**，再选 **添加到主屏幕**。
+- **电脑 Chrome / Edge**：点地址栏右侧的安装图标，或菜单 → **安装应用**。
+
+安装后从桌面图标打开即可，首次联网加载完成后，即使断网也能使用。它仍然是本地应用，数据不会同步到其他设备。
+
+在线版和本地 `file://` 版使用不同的浏览器存储，数据互不相通；选择一种方式长期使用，并定期导出备份即可。
 
 ## 本地使用
 
@@ -63,6 +72,11 @@ msedge.exe --app="file:///你的路径/index.html" --start-maximized
 | `index.html` | 应用入口与界面结构 |
 | `styles.css` | 全部界面样式 |
 | `app.js` | 计时、任务、日历、统计和本地存储逻辑 |
+| `manifest.webmanifest` | PWA 安装信息与图标配置 |
+| `sw.js` | 离线缓存 Service Worker |
+| `icon-192.png` / `icon-512.png` | Android / PWA 图标 |
+| `icon-maskable-512.png` | Android 自适应图标 |
+| `apple-touch-icon.png` | iPhone / iPad 桌面图标 |
 | `启动一隅专注.vbs` | Windows 独立应用窗口启动器 |
 | `favicon.svg` | 网页图标 |
 | `一隅专注.ico` | Windows 图标 |
@@ -71,13 +85,14 @@ msedge.exe --app="file:///你的路径/index.html" --start-maximized
 ## 技术说明
 
 - 纯静态单页应用：HTML + CSS + 原生 JavaScript。
-- 无框架、无构建步骤、无第三方运行时依赖、无网络请求。
+- 无框架、无构建步骤、无第三方运行时依赖。
 - 使用 `localStorage` 做本地持久化，使用 Web Worker 辅助后台计时。
+- 使用 Web App Manifest + Service Worker 支持安装和离线缓存；首次加载后缓存应用外壳。
 - 设计风格为纸张质感、森林绿与番茄红，支持桌面与移动宽度的响应式布局。
 
 ## English
 
-Yiyu Focus is a local-first Pomodoro timer and task calendar with a calm, paper-like interface. It is a single-page app built with vanilla HTML, CSS and JavaScript — no build step, no dependencies and no network requests. The interface is in Chinese. Data stays in your browser via `localStorage`.
+Yiyu Focus is a local-first Pomodoro timer and task calendar with a calm, paper-like interface. It is a single-page app built with vanilla HTML, CSS and JavaScript — no build step, no dependencies and no tracking. The interface is in Chinese. Data stays in your browser via `localStorage`. It is installable as a PWA and works offline after the first load.
 
 Live demo: <https://starseye.github.io/yiyu-focus/>
 

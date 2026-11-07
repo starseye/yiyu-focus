@@ -1965,6 +1965,17 @@ kbd {
   margin-top: 10px;
 }
 
+.install-hint {
+  margin: 8px 0 0;
+  font-size: 8.6px;
+  line-height: 1.55;
+}
+
+.data-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .settings-block {
   padding: 15px;
   margin-bottom: 11px;
