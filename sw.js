@@ -1,5 +1,5 @@
 /* 一隅专注 · PWA service worker */
-const CACHE_NAME = 'yiyu-focus-shell-v1.1.0';
+const CACHE_NAME = 'yiyu-focus-shell-v1.2.0';
 const APP_SHELL = [
   './',
   './index.html',

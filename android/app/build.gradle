@@ -1,0 +1,56 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.starseye.yiyufocus'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.starseye.yiyufocus'
+        minSdk 29
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}
+
+def webRoot = rootProject.projectDir.parentFile
+tasks.register('copyWebAssets', Copy) {
+    from(webRoot) {
+        include 'index.html'
+        include 'styles.css'
+        include 'app.js'
+        include 'favicon.svg'
+        include 'manifest.webmanifest'
+        include 'icon-192.png'
+        include 'icon-512.png'
+        include 'apple-touch-icon.png'
+    }
+    into "$projectDir/src/main/assets/www"
+}
+
+tasks.named('preBuild').configure {
+    dependsOn 'copyWebAssets'
+}

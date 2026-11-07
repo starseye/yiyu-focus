@@ -14,6 +14,7 @@
   const PHASES = ['focus', 'short', 'long'];
   const MAX_ESTIMATE = 6;
   const MAX_IMPORT_SIZE = 5 * 1024 * 1024;
+  const isNativeShell = new URLSearchParams(window.location.search).get('native') === '1';
 
   const EMPTY_ART = `
     <svg class="empty-art" viewBox="0 0 160 120" fill="none" aria-hidden="true">
@@ -545,6 +546,7 @@
     todayPomo: $('todayPomo'),
     heroSettingsBtn: $('heroSettingsBtn'),
     installAppBtn: $('installAppBtn'),
+    installSettingsSection: $('installSettingsSection'),
     installSettingsBtn: $('installSettingsBtn'),
     installSettingsLabel: $('installSettingsLabel'),
     installHint: $('installHint'),
@@ -2187,12 +2189,24 @@
       }
     };
 
+    const fileName = `一隅专注备份_${dateKey()}.json`;
+    if (window.YiyuAndroid && typeof window.YiyuAndroid.saveBackup === 'function') {
+      try {
+        window.YiyuAndroid.saveBackup(JSON.stringify(payload, null, 2), fileName);
+        showDataStatus('备份已保存到手机的 Downloads/YiyuFocus 文件夹。');
+        showToast('备份已保存到手机。', { icon: 'download', duration: 4200 });
+      } catch (error) {
+        showDataStatus('导出失败，请稍后再试。', true);
+      }
+      return;
+    }
+
     try {
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `一隅专注备份_${dateKey()}.json`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -2662,6 +2676,12 @@
 
   function updateInstallUI() {
     if (!dom.installAppBtn || !dom.installSettingsBtn || !dom.installHint) return;
+    if (isNativeShell) {
+      document.documentElement.classList.add('is-native-shell');
+      dom.installAppBtn.hidden = true;
+      dom.installSettingsSection.hidden = true;
+      return;
+    }
 
     const installed = isStandaloneMode();
     const secure = canUsePwa();
@@ -2761,6 +2781,13 @@
   function setupPwa() {
     if (pwaSetupDone) return;
     pwaSetupDone = true;
+
+    if (isNativeShell) {
+      document.documentElement.classList.add('is-native-shell');
+      if (dom.installAppBtn) dom.installAppBtn.hidden = true;
+      if (dom.installSettingsSection) dom.installSettingsSection.hidden = true;
+      return;
+    }
 
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();

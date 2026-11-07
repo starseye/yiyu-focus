@@ -3,6 +3,14 @@
 node_modules/
 package-lock.json
 
+# Android build outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/src/main/assets/www/
+*.apk
+
 # OS metadata
 .DS_Store
 Thumbs.db
